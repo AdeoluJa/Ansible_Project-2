@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+  tasks:
+
+    # Replace with Index php
+    - name: New Index PHP
+      template:
+        src: /home/ubuntu/ansible/docs/index.php.j2
+        dest: /var/www/html/index.php
+

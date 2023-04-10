@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+  tasks:
+    - name: Install Dependencies
+      apt: name={{ item }} state=latest force_apt_get=yes update_cache=yes
+      loop: ['aptitude']
+
+    # Install PHP
+    - name: Install PHP
+      shell: sudo apt install php8.1-fpm -y

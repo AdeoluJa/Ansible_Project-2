@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+  tasks:
+    # Install Nginx
+    - name: Install Nginx
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: ['nginx']
+
+    # Nginx Configuration
+    - name: Sets Nginx Conf File
+      template:
+        src: /home/ubuntu/ansible/docs/nginx.conf.j2
+        dest: /etc/nginx/sites-available/nginx.conf
+
+    # Enable New Site
+    - name: Enable New Site
+      file:
+        src: /etc/nginx/sites-available/nginx.conf
+        dest: /etc/nginx/sites-enabled/nginx.conf
+        state: link
+      notify: Reload Nginx
+
+    - name: Remove Default Site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+

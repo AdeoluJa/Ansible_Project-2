@@ -1,0 +1,56 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+  tasks:
+    - name: Install Dependencies
+      apt: name={{ item }} state=latest force_apt_get=yes update_cache=yes
+      loop: ['aptitude']
+
+    # Install PHP
+    - name: Install PHP
+      shell: sudo apt install php8.1-fpm -y
+
+    # Install Nginx
+    - name: Install Nginx
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: ['nginx']
+
+    # Nginx Configuration
+    - name: Sets Nginx Conf File
+      template:
+        src: /home/ubuntu/ansible/docs/nginx.conf.j2
+        dest: /etc/nginx/sites-available/nginx.conf
+
+    # Enable New Site
+    - name: Enable New Site
+      file:
+        src: /etc/nginx/sites-available/nginx.conf
+        dest: /etc/nginx/sites-enabled/nginx.conf
+        state: link
+      notify: Reload Nginx
+
+    - name: Remove Default Site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload Nginx
+
+    # Replace with Index php
+    - name: New Index PHP
+      template:
+        src: /home/ubuntu/ansible/docs/index.php.j2
+        dest: /var/www/html/index.php
+
+    # Restart Nginx
+  handlers:
+    - name: Reload Nginx
+      service:
+        name: nginx
+        state: reloaded
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
